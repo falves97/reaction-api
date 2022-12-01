@@ -3,6 +3,12 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\UserRepository;
 use App\State\UserProcessor;
 use Doctrine\ORM\Mapping as ORM;
@@ -16,6 +22,17 @@ use Symfony\Component\Serializer\Annotation\Groups;
     denormalizationContext: ['groups' => 'user:write'],
     processor: UserProcessor::class
 )]
+#[GetCollection]
+#[Post(
+    uriTemplate: '/signup',
+    openapiContext: [
+        'security' => []
+    ]
+)]
+#[Get]
+#[Put]
+#[Delete]
+#[Patch]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -79,7 +96,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string)$this->email;
     }
 
     /**
