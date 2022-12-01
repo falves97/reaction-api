@@ -12,9 +12,11 @@ use ApiPlatform\Metadata\Put;
 use App\Repository\UserRepository;
 use App\State\UserProcessor;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ApiResource(
@@ -33,6 +35,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[Put]
 #[Delete]
 #[Patch]
+#[UniqueEntity('email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -43,6 +46,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180, unique: true)]
     #[Groups(['user:read', 'user:write'])]
+    #[Assert\Email]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -60,10 +64,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      *
      */
     #[Groups(['user:write'])]
+    #[Assert\NotBlank]
     private ?string $plainPassword = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['user:read', 'user:write'])]
+    #[Assert\NotBlank]
     private ?string $registration = null;
 
     public function __construct()
