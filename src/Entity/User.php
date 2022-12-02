@@ -34,13 +34,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[Get]
 #[Put(
-    denormalizationContext: ['groups' => ['user:write', 'user:update']]
+    denormalizationContext: ['groups' => ['user:write', 'user:update']],
+    validationContext: ['groups' => ['user:update']]
 )]
 #[Delete]
 #[Patch(
-    denormalizationContext: ['groups' => ['user:write', 'user:update']]
+    denormalizationContext: ['groups' => ['user:write', 'user:update']],
+    validationContext: ['groups' => ['user:update']]
 )]
 #[UniqueEntity(fields: 'email', groups: ['user:write'])]
+#[UniqueEntity(fields: 'registration', groups: ['user:write'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -51,7 +54,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180, unique: true)]
     #[Groups(['user:read', 'user:write'])]
-    #[Assert\Email(['groups' => ['user:write']])]
+    #[Assert\Email(['groups' => ['user:write', 'user:update']])]
+    #[Assert\NotBlank(['groups' => ['user:write']])]
     private ?string $email = null;
 
     #[ORM\Column]
