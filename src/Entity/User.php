@@ -22,6 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     normalizationContext: ['groups' => 'user:read'],
     denormalizationContext: ['groups' => 'user:write'],
+    validationContext: ['groups' => ['user:write']],
     processor: UserProcessor::class
 )]
 #[GetCollection]
@@ -29,13 +30,20 @@ use Symfony\Component\Validator\Constraints as Assert;
     uriTemplate: '/signup',
     openapiContext: [
         'security' => []
-    ]
+    ],
 )]
 #[Get]
-#[Put]
+#[Put(
+    denormalizationContext: ['groups' => ['user:write', 'user:update']],
+    validationContext: ['groups' => ['user:update']]
+)]
 #[Delete]
-#[Patch]
-#[UniqueEntity('email')]
+#[Patch(
+    denormalizationContext: ['groups' => ['user:write', 'user:update']],
+    validationContext: ['groups' => ['user:update']]
+)]
+#[UniqueEntity(fields: 'email', groups: ['user:write'])]
+#[UniqueEntity(fields: 'registration', groups: ['user:write'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -46,7 +54,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180, unique: true)]
     #[Groups(['user:read', 'user:write'])]
-    #[Assert\Email]
+    #[Assert\Email(['groups' => ['user:write', 'user:update']])]
+    #[Assert\NotBlank(['groups' => ['user:write']])]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -64,13 +73,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      *
      */
     #[Groups(['user:write'])]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(['groups' => ['user:write']])]
     private ?string $plainPassword = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['user:read', 'user:write'])]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(['groups' => ['user:write']])]
     private ?string $registration = null;
+
+    #[ORM\OneToOne(cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Groups(['user:read', 'user:update'])]
+    private ?MediaObject $image = null;
 
     public function __construct()
     {
@@ -172,6 +185,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRegistration(string $registration): self
     {
         $this->registration = $registration;
+
+        return $this;
+    }
+
+    public function getImage(): ?MediaObject
+    {
+        return $this->image;
+    }
+
+    public function setImage(?MediaObject $image): self
+    {
+        $this->image = $image;
 
         return $this;
     }
